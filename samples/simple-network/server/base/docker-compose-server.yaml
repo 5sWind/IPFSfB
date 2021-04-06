@@ -39,10 +39,10 @@ services:
     environment:
       - IPFS_HOST=server1.example.com
     ports:
-      - 6001:6001
-      - 7001:7001
-      - 9080:9080
-      - 9081:9081
+      - 4001:4001
+      - 5001:5001
+      - 8080:8080
+      - 8081:8081
     volumes:
       - /var/run/:/host/var/run/
       - server1.example.com:/var/ipfsfb/server1
@@ -55,10 +55,10 @@ services:
     environment:
       - IPFS_HOST=server2.example.com
     ports:
-      - 8001:8001
-      - 9001:9001
-      - 10080:10080
-      - 10081:10081
+      - 4001:4001
+      - 5001:5001
+      - 8080:8080
+      - 8081:8081
     volumes:
       - /var/run/:/host/var/run/
       - server2.example.com:/var/ipfsfb/server2
