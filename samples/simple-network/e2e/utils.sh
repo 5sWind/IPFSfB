@@ -19,6 +19,7 @@
 # Set environment variable
 export PATH=${PWD}:$PATH
 export PEER_CONFIG_PATH=${IPFS_PATH}/peer
+export SERVER_CONFIG_PATH=${IPFS_PATH}/server
 export LOG_PATH=${IPFS_PATH}/data
 
 # Set file and web
@@ -50,9 +51,11 @@ setGlobals() {
 	elif [ "$NETWORK" == "p2s" ]; then
 		PEER_SRC_PATH=/opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer/artifacts
 		SERVER_SRC_PATH=/opt/gopath/src/github.com/IBM/IPFSfB/p2s/server/artifacts
-	else
+	elif [ "$NETWORK" == "p2sp" ]; then
 		PEER_SRC_PATH=/opt/gopath/src/github.com/IBM/IPFSfB/p2sp/peer/artifacts
 		SERVER_SRC_PATH=/opt/gopath/src/github.com/IBM/IPFSfB/p2sp/server/artifacts
+	else
+		SERVER_SRC_PATH=/opt/gopath/src/github.com/IBM/IPFSfB/server/artifacts
 	fi
 }
 
@@ -90,7 +93,11 @@ viewFiles() {
 downloadFiles() {
 	HASH=$(cat $LOG_PATH/log.txt | head -n 1)
 	set -x
-	ipfs get $HASH -o ${PEER_CONFIG_PATH}/${FILE_NAME} >>$LOG_PATH/log.txt
+	if [ "$NETWORK" != "server" ]; then
+		ipfs get $HASH -o ${PEER_CONFIG_PATH}/${FILE_NAME} >>$LOG_PATH/log.txt
+	else
+		ipfs get $HASH -o ${SERVER_CONFIG_PATH}/${FILE_NAME} >>$LOG_PATH/log.txt
+	fi
 	res=$?
 	set +x
 	cat $LOG_PATH/log.txt

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# A script for running the private network, each of peer-to-peer, peer-to-server, and peer to peer and to server
+# A script for running the private network, each of peer-to-peer, peer-to-server, peer to peer and to server and server-only
 
 # Set environment variable
 export PATH=${PWD}/bin:${PWD}:$PATH
@@ -29,7 +29,7 @@ function printHelper() {
 	echo "          - 'down' - stop and clear the network with docker-compose down."
 	echo "          - 'restart' - restart the network."
 	echo "          - 'generate' - generate swarm key file."
-	echo "      <subcommand> - network type, <subcommand=p2p|p2s|p2sp>."
+	echo "      <subcommand> - network type, <subcommand=p2p|p2s|p2sp|server>."
 	echo "Flags: "
 	echo "  -n <network> - print all available network."
 	echo "  -i <imagetag> - the tag for the private network launch (defaults to latest)."
@@ -41,10 +41,11 @@ function printNetwork() {
 	echo "Usage: "
 	echo "  pnet.sh <command> <subcommand>"
 	echo "      <command> - <command=up|down|restart> corresponding network based on user choice."
-	echo "      <subcommand> - one of 'p2p', 'p2s', or 'p2sp'."
+	echo "      <subcommand> - one of 'p2p', 'p2s', 'p2sp' or 'server'."
 	echo "          - 'p2p' - a peer-to-peer based, private network."
 	echo "          - 'p2s' - a peer-to-server based, private network."
 	echo "          - 'p2sp' - a peer to server and to peer based, private network."
+	echo "          - 'server' - a server-only private network."
 	echo
 	echo "Typically, one can bring up the network through subcommand e.g.:"
 	echo
@@ -86,9 +87,13 @@ function createContainers() {
 		for CONTAINER in peer.example.com server.example.com; do
 			composeCreate $COMPOSE_FILE_P2S
 		done
-	else
+	elif [ "$SUBCOMMAND" == "p2sp" ]; then
 		for CONTAINER in peer0.example.com peer1.example.com server.example.com; do
 			composeCreate $COMPOSE_FILE_P2SP
+		done
+	else
+		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
+			composeCreate $COMPOSE_FILE_SERVER
 		done
 	fi
 }
@@ -111,8 +116,12 @@ function copySwarmKey() {
 		for CONTAINER in peer.example.com server.example.com; do
 			dockerCp
 		done
-	else
+	elif [ "$SUBCOMMAND" == "p2sp" ]; then
 		for CONTAINER in peer0.example.com peer1.example.com server.example.com; do
+			dockerCp
+		done
+	else
+		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
 			dockerCp
 		done
 	fi
@@ -134,9 +143,13 @@ function startContainers() {
 		for CONTAINER in peer.example.com server.example.com; do
 			composeStart $COMPOSE_FILE_P2S
 		done
-	else
+	elif [ "$SUBCOMMAND" == "p2sp" ]; then
 		for CONTAINER in peer0.example.com peer1.example.com server.example.com; do
 			composeStart $COMPOSE_FILE_P2SP
+		done
+	else
+		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
+			composeStart $COMPOSE_FILE_SERVER
 		done
 	fi
 	echo "---- Sleeping 12s to allow network complete booting. ----"
@@ -183,13 +196,23 @@ function switchPrivateNet() {
 				addBootstrap
 			done
 		done
-	else
+	elif [ "$SUBCOMMAND" == "p2sp" ]; then
 		for CONTAINER in peer0.example.com peer1.example.com server.example.com; do
 			removeBootstrap
 		done
 		for CONTAINER in peer0.example.com peer1.example.com server.example.com; do
 			getAddress
 			for CNAME in peer1.example.com server.example.com peer0.example.com; do
+				addBootstrap
+			done
+		done
+	else
+		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
+			removeBootstrap
+		done
+		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
+			getAddress
+			for CNAME in server1.example.com server2.example.com server0.example.com; do
 				addBootstrap
 			done
 		done
@@ -212,9 +235,13 @@ function restartContainers() {
 		for CONTAINER in peer.example.com server.example.com; do
 			composeRestart $COMPOSE_FILE_P2S
 		done
-	else
+	elif [ "$SUBCOMMAND" == "p2sp" ]; then
 		for CONTAINER in peer0.example.com peer1.example.com server.example.com; do
 			composeRestart $COMPOSE_FILE_P2SP
+		done
+	else
+		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
+			composeRestart $COMPOSE_FILE_SERVER
 		done
 	fi
 }
@@ -241,9 +268,13 @@ function setEnv() {
 		set -a
 		source $ENV_P2S
 		set +a
-	else
+	elif [ "$SUBCOMMAND" == "p2sp" ]; then
 		set -a
 		source $ENV_P2SP
+		set +a
+	else
+		set -a
+		source $ENV_SERVER
 		set +a
 	fi
 }
@@ -333,6 +364,35 @@ function p2spDown() {
 	fi
 }
 
+# Start and up a server-only private network
+function serverUp() {
+	setEnv
+	networkUp
+	IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE_SERVER up -d --no-deps cli 2>&1
+	if [ $? -ne 0 ]; then
+		echo "ERROR!!! could not start server network, exit."
+		exit 1
+	fi
+	# Run end to end tests
+	$E2E_TEST $SUBCOMMAND server0.example.com server1.example.com server2.example.com
+}
+
+# Stop and clear server-only private network
+function serverDown() {
+	setEnv
+	# Bring down the private network, and remove volumes.
+	docker-compose -f $COMPOSE_FILE_SERVER down --volumes --remove-orphans
+	# Remove local ipfs config.
+	rm -rf .ipfs/data .ipfs/staging
+	if [ "$COMMAND" != "restart" ]; then
+		docker run -v $PWD:/var/ipfsfb --rm ipfsfb/ipfs-tools:$IMAGETAG rm -rf /var/ipfsfb/server /var/ipfsfb/data /var/ipfsfb/staging
+		# Clean the network cache.
+		docker network prune -f
+		# Remove unwanted key file generated by swarmkeygen tool.
+		rm -f $BUILD_PATH/*.key
+	fi
+}
+
 # Set the network
 NETWORK=simple-network
 # Use default docker-compose file
@@ -347,10 +407,12 @@ E2E_TEST=$E2E_NS/test.sh
 COMPOSE_FILE_P2P=./p2p/${COMPOSE_FILE}
 COMPOSE_FILE_P2S=./p2s/${COMPOSE_FILE}
 COMPOSE_FILE_P2SP=./p2sp/${COMPOSE_FILE}
+COMPOSE_FILE_SERVER=./server/${COMPOSE_FILE}
 # Set environment variable for docker-compose file
 ENV_P2P=./p2p/${ENV}
 ENV_P2S=./p2s/${ENV}
 ENV_P2SP=./p2sp/${ENV}
+ENV_SERVER=./server/${ENV}
 # Set image tag
 IMAGETAG=latest
 
@@ -387,6 +449,8 @@ if [ "${COMMAND}" == "up" ]; then
 		p2sUp
 	elif [ "${SUBCOMMAND}" == "p2sp" ]; then
 		p2spUp
+	elif [ "${SUBCOMMAND}" == "server" ]; then
+		serverUp
 	else
 		printNetwork
 		exit 1
@@ -398,6 +462,8 @@ elif [ "${COMMAND}" == "down" ]; then
 		p2sDown
 	elif [ "${SUBCOMMAND}" == "p2sp" ]; then
 		p2spDown
+	elif [ "${SUBCOMMAND}" == "server" ]; then
+		serverDown
 	else
 		printNetwork
 		exit 1
@@ -412,6 +478,9 @@ elif [ "${COMMAND}" == "restart" ]; then
 	elif [ "${SUBCOMMAND}" == "p2sp" ]; then
 		p2spDown
 		p2spUp
+	elif [ "${SUBCOMMAND}" == "server" ]; then
+		serverDown
+		serverUp
 	else
 		printNetwork
 		exit 1

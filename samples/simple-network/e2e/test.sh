@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# A script to the end-to-end test for all simple network scenarios (p2p, p2s, p2sp)
+# A script to the end-to-end test for all simple network scenarios (p2p, p2s, p2sp, server-only)
 
 echo "----------------------------------------------------------"
 echo "---- Now run end-to-end test for the private network. ----"
@@ -44,16 +44,16 @@ testFiles() {
 	echo "---- Viewing file from IPFS... ----"
 	docker cp -a $LOG_PATH/log.txt $CNAME:/var/ipfsfb/data
 	docker exec $CNAME e2e/utils.sh viewFiles $NETWORK
-	# if network is p2sp, tests the third container
-	if [ "$NETWORK" == "p2sp" ]; then
+	# if network is p2sp or server, tests the third container
+	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "server" ]; then
 		docker cp -a $LOG_PATH/log.txt $N:/var/ipfsfb/data
 		docker exec $N e2e/utils.sh viewFiles $NETWORK
 	fi
 	# Download file
 	echo "---- Downloading file from IPFS... ----"
 	docker exec $CNAME e2e/utils.sh downloadFiles $NETWORK
-	# if network is p2sp, tests the third container
-	if [ "$NETWORK" == "p2sp" ]; then
+	# if network is p2sp or server, tests the third container
+	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "server" ]; then
 		docker exec $N e2e/utils.sh downloadFiles $NETWORK
 	fi
 }
@@ -66,8 +66,8 @@ testWebs() {
 	echo "---- Querying web content from IPFS... ----"
 	docker cp -a $LOG_PATH/log.txt $CNAME:/var/ipfsfb/data
 	docker exec $CNAME e2e/utils.sh queryWeb $NETWORK
-	# if network is p2sp, tests the third container
-	if [ "$NETWORK" == "p2sp" ]; then
+	# if network is p2sp or server, tests the third container
+	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "server" ]; then
 		docker cp -a $LOG_PATH/log.txt $N:/var/ipfsfb/data
 		docker exec $N e2e/utils.sh queryWeb $NETWORK
 	fi

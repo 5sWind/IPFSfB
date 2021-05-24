@@ -29,7 +29,7 @@ services:
       - 8081:8081
     volumes:
       - /var/run/:/host/var/run/
-      - server0.example.com:/var/ipfsfb/server0
+      - server0.example.com:/var/ipfsfb/server
 
   server1.example.com:
     container_name: server1.example.com
@@ -45,7 +45,7 @@ services:
       - 9081:8081
     volumes:
       - /var/run/:/host/var/run/
-      - server1.example.com:/var/ipfsfb/server1
+      - server1.example.com:/var/ipfsfb/server
 
   server2.example.com:
     container_name: server2.example.com
@@ -61,4 +61,4 @@ services:
       - 10081:8081
     volumes:
       - /var/run/:/host/var/run/
-      - server2.example.com:/var/ipfsfb/server2
+      - server2.example.com:/var/ipfsfb/server
