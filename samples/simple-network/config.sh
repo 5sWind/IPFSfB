@@ -57,17 +57,20 @@ function config() {
 	CURRENT_API_ADDR=$(ipfs config Addresses.API | cut -d '/' -f3)
 	# Grab current gateway address
 	CURRENT_GATEWAY_ADDR=$(ipfs config Addresses.Gateway | cut -d '/' -f3)
-	# Compare addresses and change to global api and gateway
+	# Grab public ip address of this machine
+	PUBLIC_IP_ADDRESS=$(curl ifconfig.co)
+	# Compare addresses and change to global api
 	if [ "$CURRENT_API_ADDR" != "$GLOBAL_ADDR" ]; then
 		echo "---- Configuring the api endpoint, defaults for the server. ----"
 		set -x
 		ipfs config Addresses.API $INTERNET_PRO/$GLOBAL_ADDR/$COMM_PRO/$API
 		set +x
 	fi
-	if [ "$CURRENT_GATEWAY_ADDR" != "$GLOBAL_ADDR" ]; then
+	# Compare addresses and change to public ip gateway
+	if [ "$CURRENT_GATEWAY_ADDR" != "$PUBLIC_IP_ADDRESS" ]; then
 		echo "---- Configuring the gateway endpoint, defaults for the server. ----"
 		set -x
-		ipfs config Addresses.Gateway $INTERNET_PRO/$GLOBAL_ADDR/$COMM_PRO/$GATEWAY
+		ipfs config Addresses.Gateway $INTERNET_PRO/$PUBLIC_IP_ADDRESS/$COMM_PRO/$GATEWAY
 		set +x
 	fi
 }
