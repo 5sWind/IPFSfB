@@ -85,11 +85,11 @@ function addWebUI() {
 
 function configCors() {
 	echo "---- Configuring CORS for the server. ----"
-	set +x
+	set -x
 	# Grab public ip address of this machine
 	PUBLIC_IP_ADDRESS=$(curl ifconfig.co)
 	set -e
-	ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "['http://$PUBLIC_IP_ADDRESS:5001, http://$PUBLIC_IP_ADDRESS:8080']"
+	ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "[\"http://$PUBLIC_IP_ADDRESS:$API\", \"https://$PUBLIC_IP_ADDRESS:$GATEWAY\"]"
 	ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST"]'
 	set +x
 }

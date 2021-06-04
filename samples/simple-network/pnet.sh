@@ -29,7 +29,7 @@ function printHelper() {
 	echo "          - 'down' - stop and clear the network with docker-compose down."
 	echo "          - 'restart' - restart the network."
 	echo "          - 'generate' - generate swarm key file."
-	echo "      <subcommand> - network type, <subcommand=p2p|p2s|p2sp|server>."
+	echo "      <subcommand> - network type, <subcommand=p2p|p2s|p2sp|so>."
 	echo "Flags: "
 	echo "  -n <network> - print all available network."
 	echo "  -i <imagetag> - the tag for the private network launch (defaults to latest)."
@@ -41,11 +41,11 @@ function printNetwork() {
 	echo "Usage: "
 	echo "  pnet.sh <command> <subcommand>"
 	echo "      <command> - <command=up|down|restart> corresponding network based on user choice."
-	echo "      <subcommand> - one of 'p2p', 'p2s', 'p2sp' or 'server'."
+	echo "      <subcommand> - one of 'p2p', 'p2s', 'p2sp' or 'so'."
 	echo "          - 'p2p' - a peer-to-peer based, private network."
 	echo "          - 'p2s' - a peer-to-server based, private network."
 	echo "          - 'p2sp' - a peer to server and to peer based, private network."
-	echo "          - 'server' - a server-only private network."
+	echo "          - 'so' - a server-only private network."
 	echo
 	echo "Typically, one can bring up the network through subcommand e.g.:"
 	echo
@@ -93,7 +93,7 @@ function createContainers() {
 		done
 	else
 		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
-			composeCreate $COMPOSE_FILE_SERVER
+			composeCreate $COMPOSE_FILE_SO
 		done
 	fi
 }
@@ -139,21 +139,27 @@ function startContainers() {
 		for CONTAINER in peer0.example.com peer1.example.com; do
 			composeStart $COMPOSE_FILE_P2P
 		done
+		echo "---- Sleeping 12s to allow network complete booting. ----"
+		sleep 12
 	elif [ "$SUBCOMMAND" == "p2s" ]; then
 		for CONTAINER in peer.example.com server.example.com; do
 			composeStart $COMPOSE_FILE_P2S
 		done
+		echo "---- Sleeping 16s to allow network complete booting. ----"
+		sleep 16
 	elif [ "$SUBCOMMAND" == "p2sp" ]; then
 		for CONTAINER in peer0.example.com peer1.example.com server.example.com; do
 			composeStart $COMPOSE_FILE_P2SP
 		done
+		echo "---- Sleeping 18s to allow network complete booting. ----"
+		sleep 18
 	else
 		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
-			composeStart $COMPOSE_FILE_SERVER
+			composeStart $COMPOSE_FILE_SO
 		done
+		echo "---- Sleeping 20s to allow network complete booting. ----"
+		sleep 20
 	fi
-	echo "---- Sleeping 12s to allow network complete booting. ----"
-	sleep 12
 }
 
 # Remove all default bootstrap nodes
@@ -241,7 +247,7 @@ function restartContainers() {
 		done
 	else
 		for CONTAINER in server0.example.com server1.example.com server2.example.com; do
-			composeRestart $COMPOSE_FILE_SERVER
+			composeRestart $COMPOSE_FILE_SO
 		done
 	fi
 }
@@ -274,7 +280,7 @@ function setEnv() {
 		set +a
 	else
 		set -a
-		source $ENV_SERVER
+		source $ENV_SO
 		set +a
 	fi
 }
@@ -365,12 +371,12 @@ function p2spDown() {
 }
 
 # Start and up a server-only private network
-function serverUp() {
+function soUp() {
 	setEnv
 	networkUp
-	IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE_SERVER up -d --no-deps cli 2>&1
+	IMAGE_TAG=$IMAGETAG docker-compose -f $COMPOSE_FILE_SO up -d --no-deps cli 2>&1
 	if [ $? -ne 0 ]; then
-		echo "ERROR!!! could not start server network, exit."
+		echo "ERROR!!! could not start server-only network, exit."
 		exit 1
 	fi
 	# Run end to end tests
@@ -378,10 +384,10 @@ function serverUp() {
 }
 
 # Stop and clear server-only private network
-function serverDown() {
+function soDown() {
 	setEnv
 	# Bring down the private network, and remove volumes.
-	docker-compose -f $COMPOSE_FILE_SERVER down --volumes --remove-orphans
+	docker-compose -f $COMPOSE_FILE_SO down --volumes --remove-orphans
 	# Remove local ipfs config.
 	rm -rf .ipfs/data .ipfs/staging
 	if [ "$COMMAND" != "restart" ]; then
@@ -407,12 +413,12 @@ E2E_TEST=$E2E_NS/test.sh
 COMPOSE_FILE_P2P=./p2p/${COMPOSE_FILE}
 COMPOSE_FILE_P2S=./p2s/${COMPOSE_FILE}
 COMPOSE_FILE_P2SP=./p2sp/${COMPOSE_FILE}
-COMPOSE_FILE_SERVER=./server/${COMPOSE_FILE}
+COMPOSE_FILE_SO=./so/${COMPOSE_FILE}
 # Set environment variable for docker-compose file
 ENV_P2P=./p2p/${ENV}
 ENV_P2S=./p2s/${ENV}
 ENV_P2SP=./p2sp/${ENV}
-ENV_SERVER=./server/${ENV}
+ENV_SO=./so/${ENV}
 # Set image tag
 IMAGETAG=latest
 
@@ -449,8 +455,8 @@ if [ "${COMMAND}" == "up" ]; then
 		p2sUp
 	elif [ "${SUBCOMMAND}" == "p2sp" ]; then
 		p2spUp
-	elif [ "${SUBCOMMAND}" == "server" ]; then
-		serverUp
+	elif [ "${SUBCOMMAND}" == "so" ]; then
+		soUp
 	else
 		printNetwork
 		exit 1
@@ -462,8 +468,8 @@ elif [ "${COMMAND}" == "down" ]; then
 		p2sDown
 	elif [ "${SUBCOMMAND}" == "p2sp" ]; then
 		p2spDown
-	elif [ "${SUBCOMMAND}" == "server" ]; then
-		serverDown
+	elif [ "${SUBCOMMAND}" == "so" ]; then
+		soDown
 	else
 		printNetwork
 		exit 1
@@ -478,9 +484,9 @@ elif [ "${COMMAND}" == "restart" ]; then
 	elif [ "${SUBCOMMAND}" == "p2sp" ]; then
 		p2spDown
 		p2spUp
-	elif [ "${SUBCOMMAND}" == "server" ]; then
-		serverDown
-		serverUp
+	elif [ "${SUBCOMMAND}" == "so" ]; then
+		soDown
+		soUp
 	else
 		printNetwork
 		exit 1
