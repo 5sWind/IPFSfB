@@ -46,33 +46,52 @@ function init() {
 		echo "---- No IPFS configuration file found, ${MESSAGE}... ----"
 		ipfs init --profile=$PROFILE
 		if [ "$PROFILE" == "$SERVER_NS" ]; then
-			config
+			configAddresses
+			addWebUI
+			configCors
 		fi
 	fi
 }
 
 # Configure the api and gateway endpoint
-function config() {
+function configAddresses() {
 	# Grab current api address
 	CURRENT_API_ADDR=$(ipfs config Addresses.API | cut -d '/' -f3)
 	# Grab current gateway address
 	CURRENT_GATEWAY_ADDR=$(ipfs config Addresses.Gateway | cut -d '/' -f3)
-	# Grab public ip address of this machine
-	PUBLIC_IP_ADDRESS=$(curl ifconfig.co)
-	# Compare addresses and change to global api
+	# Compare addresses and change to global api and gateway
 	if [ "$CURRENT_API_ADDR" != "$GLOBAL_ADDR" ]; then
 		echo "---- Configuring the api endpoint, defaults for the server. ----"
 		set -x
 		ipfs config Addresses.API $INTERNET_PRO/$GLOBAL_ADDR/$COMM_PRO/$API
 		set +x
 	fi
-	# Compare addresses and change to public ip gateway
-	if [ "$CURRENT_GATEWAY_ADDR" != "$PUBLIC_IP_ADDRESS" ]; then
+	if [ "$CURRENT_GATEWAY_ADDR" != "$GLOBAL_ADDR" ]; then
 		echo "---- Configuring the gateway endpoint, defaults for the server. ----"
 		set -x
-		ipfs config Addresses.Gateway $INTERNET_PRO/$PUBLIC_IP_ADDRESS/$COMM_PRO/$GATEWAY
+		ipfs config Addresses.Gateway $INTERNET_PRO/$GLOBAL_ADDR/$COMM_PRO/$GATEWAY
 		set +x
 	fi
+}
+
+# Add web ui
+function addWebUI() {
+	echo "---- Adding private Web UI for the server. ----"
+	set -x
+	curl https://$PUBLIC_GATEWAY/api/$API_VERSION/get/$WEBUI_CID | tar -xf -
+	ipfs add -r $WEBUI_CID
+	set +x
+}
+
+function configCors() {
+	echo "---- Configuring CORS for the server. ----"
+	set +x
+	# Grab public ip address of this machine
+	PUBLIC_IP_ADDRESS=$(curl ifconfig.co)
+	set -e
+	ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "['http://$PUBLIC_IP_ADDRESS:5001, http://$PUBLIC_IP_ADDRESS:8080']"
+	ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST"]'
+	set +x
 }
 
 # Run IPFS daemon process.
@@ -108,6 +127,12 @@ COMM_PRO=tcp
 INTERNET_PRO=/ip4
 # Set server name space
 SERVER_NS=server
+# Set IPFS public gateway
+PUBLIC_GATEWAY=dweb.link
+# Set private Web UI cid
+WEBUI_CID=QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ
+# Set api version
+API_VERSION=v0
 
 # The arg of the command
 COMMAND=$1
