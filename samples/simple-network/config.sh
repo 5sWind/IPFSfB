@@ -28,6 +28,7 @@
 export PATH=${PWD}:$PATH
 export IPFS_CONFIG=${IPFS_PATH}/config
 export SWARM_KEY_FILE=${IPFS_PATH}/swarm.key
+export WEB_UI_DIR=${IPFS_PATH}/${WEBUI_CID}
 
 # Print the help message.
 function printHelper() {
@@ -74,20 +75,24 @@ function configAddresses() {
 	fi
 }
 
-# Add web ui
+# Add Web UI
 function addWebUI() {
-	echo "---- Adding private Web UI for the server. ----"
+	echo "---- Adding IPFS Web UI to private host. ----"
 	set -x
-	curl https://$PUBLIC_GATEWAY/api/$API_VERSION/get/$WEBUI_CID | tar -xf -
-	ipfs add -r $WEBUI_CID
+	ipfs add -r $WEB_UI_DIR
 	set +x
 }
 
+# Config CORS 
 function configCors() {
-	echo "---- Configuring CORS for the server. ----"
+	echo "---- Configuring CORS for the private host. ----"
 	set -x
 	# Grab public ip address of this machine
-	PUBLIC_IP_ADDRESS=$(curl ifconfig.co)
+	PUBLIC_IP_ADDRESS=$(timeout 2 curl ifconfig.co)
+	if [ "$?" -ne 0 ]; then
+		echo "requesting address timed out, exit."
+		exit 1
+	fi
 	set -e
 	ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin "[\"http://$PUBLIC_IP_ADDRESS:$API\", \"https://$PUBLIC_IP_ADDRESS:$GATEWAY\"]"
 	ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "GET", "POST"]'
@@ -127,12 +132,8 @@ COMM_PRO=tcp
 INTERNET_PRO=/ip4
 # Set server name space
 SERVER_NS=server
-# Set IPFS public gateway
-PUBLIC_GATEWAY=dweb.link
 # Set private Web UI cid
 WEBUI_CID=QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ
-# Set api version
-API_VERSION=v0
 
 # The arg of the command
 COMMAND=$1

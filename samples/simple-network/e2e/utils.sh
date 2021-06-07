@@ -93,7 +93,7 @@ viewFiles() {
 downloadFiles() {
 	HASH=$(cat $LOG_PATH/log.txt | head -n 1)
 	set -x
-	if [ "$NETWORK" != "server" ]; then
+	if [ "$NETWORK" != "so" ]; then
 		ipfs get $HASH -o ${PEER_CONFIG_PATH}/${FILE_NAME} >>$LOG_PATH/log.txt
 	else
 		ipfs get $HASH -o ${SERVER_CONFIG_PATH}/${FILE_NAME} >>$LOG_PATH/log.txt

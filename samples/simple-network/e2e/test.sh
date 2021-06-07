@@ -45,7 +45,7 @@ testFiles() {
 	docker cp -a $LOG_PATH/log.txt $CNAME:/var/ipfsfb/data
 	docker exec $CNAME e2e/utils.sh viewFiles $NETWORK
 	# if network is p2sp or server, tests the third container
-	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "server" ]; then
+	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "so" ]; then
 		docker cp -a $LOG_PATH/log.txt $N:/var/ipfsfb/data
 		docker exec $N e2e/utils.sh viewFiles $NETWORK
 	fi
@@ -53,7 +53,7 @@ testFiles() {
 	echo "---- Downloading file from IPFS... ----"
 	docker exec $CNAME e2e/utils.sh downloadFiles $NETWORK
 	# if network is p2sp or server, tests the third container
-	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "server" ]; then
+	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "so" ]; then
 		docker exec $N e2e/utils.sh downloadFiles $NETWORK
 	fi
 }
@@ -67,7 +67,7 @@ testWebs() {
 	docker cp -a $LOG_PATH/log.txt $CNAME:/var/ipfsfb/data
 	docker exec $CNAME e2e/utils.sh queryWeb $NETWORK
 	# if network is p2sp or server, tests the third container
-	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "server" ]; then
+	if [ "$NETWORK" == "p2sp" ] || [ "$NETWORK" == "so" ]; then
 		docker cp -a $LOG_PATH/log.txt $N:/var/ipfsfb/data
 		docker exec $N e2e/utils.sh queryWeb $NETWORK
 	fi

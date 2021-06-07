@@ -15,6 +15,22 @@
 version: '2'
 
 services:
+  server.example.com:
+    container_name: server.example.com
+    extends:
+      file: p2sp-server-base.yaml
+      service: p2sp-server-base
+    environment:
+      - IPFS_HOST=server.example.com
+    ports:
+      - 4001:4001
+      - 5001:5001
+      - 8080:8080
+      - 8081:8081
+    volumes:
+      - /var/run/:/host/var/run/
+      - server.example.com:/var/ipfsfb/server
+
   peer0.example.com:
     container_name: peer0.example.com
     extends:
@@ -23,10 +39,10 @@ services:
     environment:
       - IPFS_HOST=peer0.example.com
     ports:
-      - 4001:4001
-      - 5001:5001
-      - 8080:8080
-      - 8081:8081
+      - 6001:6001
+      - 7001:7001
+      - 9080:9080
+      - 9081:9081
     volumes:
       - /var/run/:/host/var/run/
       - peer0.example.com:/var/ipfsfb/peer
@@ -39,26 +55,10 @@ services:
     environment:
       - IPFS_HOST=peer1.example.com
     ports:
-      - 6001:6001
-      - 7001:7001
-      - 9080:9080
-      - 9081:9081
-    volumes:
-      - /var/run/:/host/var/run/
-      - peer1.example.com:/var/ipfsfb/peer
-
-  server.example.com:
-    container_name: server.example.com
-    extends:
-      file: p2sp-server-base.yaml
-      service: p2sp-server-base
-    environment:
-      - IPFS_HOST=server.example.com
-    ports:
       - 8001:4001
       - 9001:5001
       - 10080:8080
       - 10081:8081
     volumes:
       - /var/run/:/host/var/run/
-      - server.example.com:/var/ipfsfb/server
+      - peer1.example.com:/var/ipfsfb/peer

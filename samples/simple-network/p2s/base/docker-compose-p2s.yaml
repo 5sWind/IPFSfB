@@ -15,29 +15,6 @@
 version: '2'
 
 services:
-  peer.example.com:
-    image: ipfsfb/ipfs-peer:$IMAGE_TAG
-    container_name: peer.example.com
-    extends:
-      file: p2s-base.yaml
-      service: p2s-base
-    environment:
-      - IPFS_HOST=peer.example.com
-      - IPFS_LOGGING=INFO
-    ports:
-      - 4001:4001
-      - 5001:5001
-      - 8080:8080
-      - 8081:8081
-    working_dir: /opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer
-    volumes:
-      - /var/run/:/host/var/run/
-      - peer.example.com:/var/ipfsfb/peer
-      - ../../config.sh:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer/config.sh
-      - ../../artifacts:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer/artifacts
-      - ../../e2e:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer/e2e
-    command: bash -c "./config.sh init && ./config.sh daemon"
-
   server.example.com:
     image: ipfsfb/ipfs-server:$IMAGE_TAG
     container_name: server.example.com
@@ -49,10 +26,10 @@ services:
       - IPFS_LOGGING=ERROR
       - IPFS_PROFILE=server
     ports:
-      - 6001:6001
-      - 7001:7001
-      - 9080:9080
-      - 9081:9081
+      - 4001:4001
+      - 5001:5001
+      - 8080:8080
+      - 8081:8081
     working_dir: /opt/gopath/src/github.com/IBM/IPFSfB/p2s/server
     volumes:
       - /var/run/:/host/var/run/
@@ -61,3 +38,26 @@ services:
       - ../../artifacts:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/server/artifacts
       - ../../e2e:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/server/e2e
     command: bash -c "./config.sh init -p server && ./config.sh daemon -m"
+
+  peer.example.com:
+    image: ipfsfb/ipfs-peer:$IMAGE_TAG
+    container_name: peer.example.com
+    extends:
+      file: p2s-base.yaml
+      service: p2s-base
+    environment:
+      - IPFS_HOST=peer.example.com
+      - IPFS_LOGGING=INFO
+    ports:
+      - 6001:6001
+      - 7001:7001
+      - 9080:9080
+      - 9081:9081
+    working_dir: /opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer
+    volumes:
+      - /var/run/:/host/var/run/
+      - peer.example.com:/var/ipfsfb/peer
+      - ../../config.sh:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer/config.sh
+      - ../../artifacts:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer/artifacts
+      - ../../e2e:/opt/gopath/src/github.com/IBM/IPFSfB/p2s/peer/e2e
+    command: bash -c "./config.sh init && ./config.sh daemon"
