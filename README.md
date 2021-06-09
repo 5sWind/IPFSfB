@@ -112,9 +112,3 @@ If you have encountered a problem for running IPFSfB, raise an issue and mention
 
 - [go-ipfs](https://github.com/ipfs/go-ipfs): this repository is based on InterPlanetary File System implementation in Go.
 - [Hyperledger Fabric - Building Your First Network](https://hyperledger-fabric.readthedocs.io/en/master/build_network.html): the technical design of each scenarios of simple network are referenced to build your first network (BYFN) sample.
-
-## 8. License
-
-This code pattern is licensed under the Apache Software License, Version 2. Separate third-party code objects invoked within this code pattern are licensed by their respective providers pursuant to their own separate licenses. Contributions are subject to the [Developer Certificate of Origin, Version 1.1 (DCO)](https://developercertificate.org/) and the [Apache Software License, Version 2](https://www.apache.org/licenses/LICENSE-2.0.txt).
-
-[Apache Software License (ASL) FAQ](https://www.apache.org/foundation/license-faq.html#WhatDoesItMEAN)
