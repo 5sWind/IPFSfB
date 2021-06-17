@@ -8,7 +8,7 @@ When contributing to this repository, please first discuss the change you wish t
 
 ## Contributors Board
 
-* Hengming (5sWind) Zhang - hengmzh@cn.ibm.com
+* Feliciss - fiveswind@gmail.com
 
 ## Pull Requests
 

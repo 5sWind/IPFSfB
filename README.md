@@ -2,6 +2,25 @@
 
 [![Build Status](https://api.travis-ci.org/IBM/IPFSfB.svg?branch=master)](https://travis-ci.org/IBM/IPFSfB)
 
+## Forked Repository Note
+
+This forked repository of IBM/IPFSfB is one of the most renowned versions of IPFSfB, the IPFSfB orginal author's repository.
+Where the newest version of IPFSfB will arrive, there is a place.
+
+### Note for New Features
+
+This repository empowers users to leverage the nature of the IPFS Web UI feature, refined p2p, p2s and p2sp network to add server functionality of Web UI, and add server-only (so) senario.
+
+- Private IPFS Web UI for ipfs-server with download and upload functionalites.
+- New desgin of server-only (so) network.
+- Renewed p2p, p2s, and p2sp networks for private IPFS Web UI compatibility.
+
+### Note for Private IPFS Web UI
+
+The private IPFS Web UI is not ready for production usage if only bringing a network up by a single script like `./pnet up <network>`. To use all Web UI functionalities, we should configure it through [Private IPFS Web UI tutorial](docs/tutorial/private-ipfs-web-ui.md).
+
+## Original Edition
+
 This repository contains instructions to build a private, unstructured data storage network for any blockchain on distributed file system, InterPlanetary File System for Business (IPFSfB), using crypto tools and Docker images with Docker and Docker Compose to provision the enterprise blockchain storage network.
 
 ## Overview
@@ -50,6 +69,12 @@ or build all utilities:
 make all
 ```
 
+After build, make sure to add $GOPATH/bin to your bash/zsh environment or export it to PATH:
+
+``` bash
+export PATH=$PATH:$GOPATH/bin
+```
+
 ## Steps
 
 1. [Running a private network](#1-running-a-private-network)
@@ -63,7 +88,7 @@ make all
 
 ## 1. Running a private network
 
-Currently, we are offering simple network as one of the samples. It contains three senarios including peer-to-peer, peer-to-server, and peer to peer and to server. You can follow the [tutorial](docs/tutorial/simple-network.md) to envision and run a private network.
+Currently, we are offering simple network as one of the samples. It contains four senarios including peer-to-peer, peer-to-server, peer to peer and to server, and server-only. You can follow the [tutorial](docs/tutorial/simple-network.md) to envision and run a private network.
 
 ## 2. Runtime instructions
 
@@ -71,9 +96,10 @@ If you are running a private network, [config.sh](samples/simple-network/config.
 
 ## 3. Scenarios
 
-One of the samples, simple network is avaliable in three scenarios ([p2p](https://en.wikipedia.org/wiki/Peer-to-peer), [p2s](https://zh.wikipedia.org/wiki/P2S), and [p2sp](https://zh.wikipedia.org/wiki/P2SP)).
+One of the samples, simple network is avaliable in four scenarios ([p2p](https://en.wikipedia.org/wiki/Peer-to-peer), [p2s](https://zh.wikipedia.org/wiki/P2S), [p2sp](https://zh.wikipedia.org/wiki/P2SP) and [so](https://en.wikipedia.org/wiki/Server_(computing))).
 
 The scenario guidelines are available at [docs/tutorial/simple-network.md](docs/tutorial/simple-network.md).
+
 
 ### Accessing and running
 

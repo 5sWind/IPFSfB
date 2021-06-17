@@ -4,7 +4,7 @@ This guide is intended for maintainers, anybody with commit access to one or mor
 
 ## Maintainers Board
 
-* Hengming (5sWind) Zhang - hengmzh@cn.ibm.com
+* Feliciss - fiveswind@gmail.com
 
 ## Methodology
 

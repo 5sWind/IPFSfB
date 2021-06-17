@@ -16,9 +16,9 @@ After installed, you can enter to the network directory and just run:
 ./pnet.sh up <network>
 ```
 
-The network tag is one of [p2p](https://en.wikipedia.org/wiki/Peer-to-peer), [p2s](https://zh.wikipedia.org/wiki/P2S), and [p2sp](https://zh.wikipedia.org/wiki/P2SP).
+The network tag is one of [p2p](https://en.wikipedia.org/wiki/Peer-to-peer), [p2s](https://zh.wikipedia.org/wiki/P2S), [p2sp](https://zh.wikipedia.org/wiki/P2SP) and [so](https://en.wikipedia.org/wiki/Server_(computing)).
 This command will up and start a corresponding network.
-During the network booting, swarmkeygen tool will generate a random, 32 bytes secret key in your network's `build` directory, and `docker cp` will copy it to each containers. At the same time, each network nodes will exchange their ipfs address with others. Finally, rebooting the network using the secret key (`swarm.key` file) will create a private network.
+During the network booting, swarmkeygen tool will generate a random, 32 bytes secret key in your network's `build` directory and `curl` tool will get IPFS Web UI CID for ipfs-server from one of the public IPFS gateways, and `docker cp` will copy them to each containers. At the same time, each network nodes will exchange their ipfs address with others. Finally, rebooting the network using the secret key (`swarm.key` file) will create a private network.
 
 ## Setting up private network manually
 
@@ -35,6 +35,7 @@ Next, choose which network to start:
 1. [P2P](#1-p2p)
 2. [P2S](#2-p2s)
 3. [P2SP](#3-p2sp)
+4. [SO](#4-so)
 
 ### 1. P2P
 
@@ -195,6 +196,13 @@ docker cp swarm.key server.example.com:/var/ipfsfb
 docker cp swarm.key peer.example.com:/var/ipfsfb
 ```
 
+Get the IPFS Web UI CID from an IPFS public gateway and copy it to server container config path.
+
+``` bash
+curl https://dweb.link/api/v0/get/QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ | tar -xf -
+docker cp QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ server.example.com:/var/ipfsfb
+```
+
 Then restart the network by running:
 
 ``` bash
@@ -317,6 +325,13 @@ docker cp swarm.key peer0.example.com:/var/ipfsfb
 docker cp swarm.key peer1.example.com:/var/ipfsfb
 ```
 
+Get the IPFS Web UI CID from an IPFS public gateway and copy it to server container config path.
+
+``` bash
+curl https://dweb.link/api/v0/get/QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ | tar -xf -
+docker cp QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ server.example.com:/var/ipfsfb
+```
+
 Then restart the network by running:
 
 ``` bash
@@ -336,3 +351,135 @@ You should see the message - running a private network with a swarm key file, an
 Now we are in private network, with the swarm key file shared to container `server.example.com`, container `peer0.example.com` and container `peer1.example.com`.
 
 Additionaly, the `server.example.com` api and gateway can be accessed from `peer0.example.com` or `peer1.example.com` or any others in the network, as we enabled global api and gateway settings for the server in [config.sh](../../samples/simple-network/config.sh).
+
+### 4. SO
+
+SO scenario is enabled global network address for only the server's profile, which will export your current host machine address to the containers address. You can refer to the network settings in the p2sp [env](../../samples/simple-network/so/.env) file.
+
+Go to the so folder.
+
+Bring up the network by running:
+
+``` bash
+docker-compose up -d
+```
+
+After brining up the network, enter to the container `server0.example.com` by interative mode:
+
+``` bash
+docker exec -it server0.example.com bash
+```
+
+Clean up the bootstrap nodes:
+
+``` bash
+ipfs bootstrap rm --all
+```
+
+Obtain the container's ipfs address:
+
+``` bash
+ipfs id -f='<addrs>'
+```
+
+Ignoring the localhost `127.0.0.1` address, copy the address that is not localhost, and exit the interative mode:
+
+``` bash
+exit
+```
+
+Now enter to container `server1.example.com` by interative mode:
+
+``` bash
+docker exec -it server1.example.com bash
+```
+
+As same as we do remove and obtain address for `server0.example.com`, remove bootstrap nodes and obtain `server1.example.com` address, then add `server0.example.com` address to `server1.example.com` bootstrap list, as we copied the `server0.example.com` address above.
+
+``` bash
+ipfs bootstrap rm --all
+ipfs id -f='<addrs>'
+ipfs bootstrap add <your container server0.example.com ipfs address>
+```
+
+As same as above, copy the container `server1.example.com` ipfs address which is not starting with `127.0.0.1`, and exit the interative mode:
+
+``` bash
+exit
+```
+
+Now enter to container `server2.example.com` by interative mode:
+
+``` bash
+docker exec -it server2.example.com bash
+```
+
+As we do the same above, remove bootstrap nodes and obtain `server2.example.com` address, then add `server0.example.com` address and `server1.example.com` address to `server2.example.com` bootstrap list, as we copied the `server0.example.com` and `server1.example.com` addresses above.
+
+``` bash
+ipfs bootstrap rm --all
+ipfs id -f='<addrs>'
+ipfs bootstrap add <your container server0.example.com ipfs address>
+ipfs bootstrap add <your container server1.example.com ipfs address>
+```
+
+As same as above, copy the container `server2.example.com` ipfs address which is not starting with `127.0.0.1`, and exit the interative mode:
+
+``` bash
+exit
+```
+
+Now let's back to the container `server1.example.com`, and add `server2.example.com` address that we have just obtained to `server1.example.com` bootstrap list, and finally exit the interative mode:
+
+``` bash
+docker exec -it server1.example.com bash
+ipfs bootstrap add <your container server2.example.com ipfs address>
+exit
+```
+
+Back to the container `server0.example.com` and add `server1.example.com` ipfs address and `server2.example.com` ipfs address, and finally exit the interative mode:
+
+``` bash
+docker exec -it server0.example.com bash
+ipfs bootstrap add <your container server1.example.com ipfs address>
+ipfs bootstrap add <your container server2.example.com ipfs address>
+exit
+```
+
+Now generate a swarm key file, and copy it to each containers config path.
+
+``` bash
+swarmkeygen generate > swarm.key
+docker cp swarm.key server0.example.com:/var/ipfsfb
+docker cp swarm.key server1.example.com:/var/ipfsfb
+docker cp swarm.key server2.example.com:/var/ipfsfb
+```
+
+Get the IPFS Web UI CID from an IPFS public gateway and copy it to server containers config path.
+
+``` bash
+curl https://dweb.link/api/v0/get/QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ | tar -xf -
+docker cp QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ server0.example.com:/var/ipfsfb
+docker cp QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ server1.example.com:/var/ipfsfb
+docker cp QmXc9raDM1M5G5fpBnVyQ71vR4gbnskwnB9iMEzBuLgvoZ server2.example.com:/var/ipfsfb
+```
+
+Then restart the network by running:
+
+``` bash
+docker-compose restart
+```
+
+After restart, you can inspect each of the containers network status by docker logs:
+
+``` bash
+docker logs server0.example.com
+docker logs server1.example.com
+docker logs server2.example.com
+```
+
+You should see the message - running a private network with a swarm key file, and the swarm key fingerprint.
+
+Now we are in private network, with the swarm key file shared to container `server0.example.com`, container `server1.example.com` and container `server2.example.com`.
+
+Additionaly, the `server0.example.com`, `server1.example.com` and `server2.example.com` api and gateways can be accessed from outside world such as a client browser, SDK, etc., as we enabled global api and gateway settings for the servers in [config.sh](../../samples/simple-network/config.sh).
