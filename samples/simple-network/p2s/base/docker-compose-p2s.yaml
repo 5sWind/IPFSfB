@@ -16,7 +16,7 @@ version: '2'
 
 services:
   server.example.com:
-    image: ipfsfb/ipfs-server:$IMAGE_TAG
+    image: ipfsfb/ipfs-node:$SERVER_IMAGE_TAG
     container_name: server.example.com
     extends:
       file: p2s-base.yaml
@@ -40,7 +40,7 @@ services:
     command: bash -c "./config.sh init -p server && ./config.sh daemon -m"
 
   peer.example.com:
-    image: ipfsfb/ipfs-peer:$IMAGE_TAG
+    image: ipfsfb/ipfs-node:$PEER_IMAGE_TAG
     container_name: peer.example.com
     extends:
       file: p2s-base.yaml

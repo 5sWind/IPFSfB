@@ -17,7 +17,7 @@ version: '2'
 services:
   cli:
     container_name: cli
-    image: ipfsfb/ipfs-tools:$IMAGE_TAG
+    image: ipfsfb/ipfs-tools:$TOOL_IMAGE_TAG
     tty: true
     stdin_open: true
     environment:

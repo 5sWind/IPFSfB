@@ -1,23 +1,7 @@
-#!/bin/bash
-
-# Copyright 2019 IBM Corp.
-
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-
-#   http://www.apache.org/licenses/LICENSE-2.0
-
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 # A script to download binaries and tools, and install docker images for the simple network scenarios
 
 # Match the latest image version if not specified
-export IMAGE_VERSION=0.1.0
+export IMAGE_VERSION=latest
 
 printHelper() {
 	echo "Usage: "
@@ -46,11 +30,14 @@ fi
 
 dockerIPFSfBPull() {
 	local IMAGE_TAG=$1
-	for IMAGES in peer server tools; do
-		echo "IPFSfB $NETWORK image: $IMAGES"
-		echo
-		docker pull ipfsfb/ipfs-$IMAGES:$IMAGE_TAG
-		docker tag ipfsfb/ipfs-$IMAGES:$IMAGE_TAG ipfsfb/ipfs-$IMAGES:latest
+	echo "IPFSfB $NETWORK image: tools, node"
+	echo
+	docker pull ipfsfb/ipfs-tools:$IMAGE_VERSION
+	if [ "$IMAGE_VERSION" != "latest" ]; then
+		docker tag ipfsfb/ipfs-tools:$IMAGE_VERSION ipfsfb/ipfs-tools:latest
+	fi
+	for IMAGE_TAG in peer server; do
+		docker pull ipfsfb/ipfs-node:$IMAGE_TAG
 	done
 }
 
@@ -131,7 +118,6 @@ toolInstall() {
 	fi
 }
 
-IMAGE_TAG=$IMAGE_VERSION
 NETWORK=simple-network
 ORG=IBM
 PROJECT_NAME=IPFSfB

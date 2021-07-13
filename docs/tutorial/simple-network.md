@@ -4,7 +4,7 @@ This is a tutorial for IPFSfB simple network. Simple network is based on InterPl
 
 ## Quickstart
 
-The [bootstrap.sh](../../samples/simple-network/scripts/bootstrap.sh) script will download binaries, tools and docker images for the simple (private) network. In the process, docker will download the images and tag them to latest. Tools will be installed in your network's bin directory. Optinally, you can specify the version tag for IPFSfB images. By default, version is 0.1.0.
+The [bootstrap.sh](../../samples/simple-network/scripts/bootstrap.sh) script will download binaries, tools and docker images for the simple (private) network. In the process, docker will download the images and tag them to latest. Tools will be installed in your network's bin directory. Optinally, you can specify the version tag for IPFSfB images. By default, version is the latest version.
 
 ``` bash
 curl -sSL https://bit.ly/snetboot | bash -s <version>

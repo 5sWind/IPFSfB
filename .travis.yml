@@ -1,26 +1,15 @@
-# Copyright 2019 IBM Corp.
-
-# Licensed under the Apache License, Version 2.0 (the "License"); 
-# you may not use this file except in compliance with the License. 
-# You may obtain a copy of the License at 
-
-#   http://www.apache.org/licenses/LICENSE-2.0 
-
-# Unless required by applicable law or agreed to in writing, software 
-# distributed under the License is distributed on an "AS IS" BASIS, 
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
-# See the License for the specific language governing permissions and 
-# limitations under the License.
-
 language: go
 
 go:
-  - 1.11.5
+  - latest
 sudo: required
 services:
   - docker
 env:
-  - PKG_VERSION=0.1.0
+  - REPO_NAME=ipfsfb
+  - BASE_IMAGE_NAME=ipfs-node
+  - PEER_DOCKER_TAG=peer
+  - SERVER_DOCER_TAG=server
 
 before_install:
   - echo "Setting project environment variable."
@@ -34,7 +23,7 @@ install:
     cd $GOPATH/src/github.com/$TRAVIS_REPO_OWNER/$TRAVIS_REPO_NAME
     make ipfs swarmkeygen
     chmod +x samples/simple-network/scripts/bootstrap.sh
-    sudo ./samples/simple-network/scripts/bootstrap.sh $PKG_VERSION -b -t
+    sudo ./samples/simple-network/scripts/bootstrap.sh latest -b -t
 
 before_script:
   - echo "Setting project environment path."
@@ -46,9 +35,9 @@ before_script:
 script:
   - echo "Testing function for each command line tools."
   - |
-    docker run -it --name peer0 -p 4001:4001 -p 5001:5001 -p 8080:8080 -p 8081:8081 ipfsfb/ipfs-peer:$PKG_VERSION \
+    docker run -it --name peer0 -p 4001:4001 -p 5001:5001 -p 8080:8080 -p 8081:8081 $REPO_NAME/$BASE_IMAGE_NAME:$PEER_DOCKER_TAG \
     /bin/bash -c "ipfs init --profile=default-networking && ipfs bootstrap rm --all && ipfs id -f='<addrs>'" >& peer0.log
-    docker run -it --name server0 -p 4001:4001 -p 5001:5001 -p 8080:8080 -p 8081:8081 ipfsfb/ipfs-server:$PKG_VERSION \
+    docker run -it --name server0 -p 4001:4001 -p 5001:5001 -p 8080:8080 -p 8081:8081 $REPO_NAME/$BASE_IMAGE_NAME:$SERVER_DOCER_TAG \
     /bin/bash -c "ipfs init --profile=server && ipfs bootstrap rm --all && ipfs id -f='<addrs>'" >& server0.log
     ipfs init --profile=default-networking
     ipfs bootstrap rm --all

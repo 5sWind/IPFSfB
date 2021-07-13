@@ -19,10 +19,10 @@ package ipfsfb
 // Variables set in the Makefile with ldflags
 
 // ReleaseVersion config
-var ReleaseVersion = "0.1.0"
+var ReleaseVersion = "0.2.0"
 
 // ImageVersion config
-var ImageVersion = "0.1.0"
+var ImageVersion = "0.2.0"
 
 // CommitSHA version config
 var CommitSHA string
