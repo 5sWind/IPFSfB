@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - latest
+  - master
 sudo: required
 services:
   - docker
